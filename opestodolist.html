@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            background-color: #add8e6;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .todo-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+        }
+        #task-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        ul {
+            padding: 0;
+            list-style-type: none;
+            counter-reset: task-counter;
+        }
+        li {
+            background-color: #e0e0e0;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            counter-increment: task-counter;
+        }
+        li::before {
+            content: counter(task-counter) ". ";
+            margin-right: 5px;
+        }
+        .done {
+            text-decoration: line-through;
+        }
+        .delete-btn, .mark-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        .mark-btn svg {
+            fill: green;
+            width: 16px;
+            height: 16px;
+        }
+        .delete-btn {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="todo-container">
+        <h2>TO-DO LIST</h2>
+        <input type="text" id="task-input" placeholder="Add a new task...">
+        <button onclick="addTask()">Add Task</button>
+        <ul id="task-list"></ul>
+    </div>
+    <script>
+        var taskInput = document.getElementById("task-input");
+        var taskList = document.getElementById("task-list");
+
+        // Save tasks to localStorage
+        function saveTasks() {
+            var tasks = [];
+            document.querySelectorAll("#task-list li").forEach(function (li) {
+                var taskText = li.querySelector("span").textContent;
+                var date = li.querySelector(".task-date").textContent;
+                var completed = li.classList.contains("done");
+                tasks.push({ text: taskText, date: date, completed: completed });
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        // Load tasks from localStorage
+        function loadTasks() {
+            var tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.forEach(function (task) {
+                addTask(task.text, task.date, task.completed);
+            });
+        }
+
+        // Add a task to the list
+        function addTask(taskText, date, completed) {
+            var text = taskText || taskInput.value.trim();
+            if (!text) return;
+
+            var li = document.createElement("li");
+            if (completed) li.classList.add("done");
+
+            // Add task text and date
+            var span = document.createElement("span");
+            span.textContent = text;
+
+            var taskDate = document.createElement("span");
+            taskDate.textContent = " (" + (date || new Date().toLocaleString()) + ")";
+            taskDate.className = "task-date";
+
+            // Add mark button
+            var markButton = document.createElement("button");
+            markButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 96 960 960"><path d="M378 768 212 602l56-56 110 110 314-314 56 56-370 370Z"/></svg>`;
+            markButton.className = "mark-btn";
+            markButton.onclick = function () {
+                li.classList.toggle("done");
+                saveTasks();
+            };
+
+            // Add delete button
+            var deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.className = "delete-btn";
+            deleteButton.onclick = function () {
+                li.remove();
+                saveTasks();
+            };
+
+            li.appendChild(span);
+            li.appendChild(taskDate);
+            li.appendChild(markButton);
+            li.appendChild(deleteButton);
+
+            taskList.appendChild(li);
+            saveTasks();
+
+            taskInput.value = ""; // Clear input
+        }
+
+        // Add task on pressing Enter
+        taskInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                addTask();
+            }
+        });
+
+        // Load tasks on page load
+        document.addEventListener("DOMContentLoaded", loadTasks);
+    </script>
+</body>
+</html>
